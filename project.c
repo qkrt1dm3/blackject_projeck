@@ -108,10 +108,14 @@ int main(void) {
             printf("블랙잭! 배팅 금액에 1.5배가 지급됩니다! (+%d원)\n", bet * 1.5);
             p.asset += (int)(bet * 1.5); // 구조체 변수에 직접 더하기
         } 
-        else if (dealer_score > 21 || my_score > dealer_score) {
+        else if (dealer_score < 21 && my_score > dealer_score) {
             printf("축하합니다! 승리하셨습니다. (+%d원)\n", bet);
             p.asset += bet; // 구조체 변수에 직접 더하기
         } 
+        else if (dealer_score > 21) {
+            printf("딜러가 버스트! 승리하셨습니다. (+%d원)\n", bet);
+            p.asset += bet; // 구조체 변수에 직접 더하기
+        }
         else if (my_score < dealer_score) {
             printf("딜러의 점수가 더 높습니다. 패배! (-%d원)\n", bet);
             p.asset -= bet;
@@ -120,7 +124,7 @@ int main(void) {
             printf("21점을 초과(버스트)하여 패배했습니다! (-%d원)\n", bet);
             p.asset -= bet; // 구조체 변수에 직접 빼기
         }
-        else {
+        else if (my_score == dealer_score) {
             printf("비겼습니다! 베팅 금액을 돌려받습니다.\n");
         }
     }
