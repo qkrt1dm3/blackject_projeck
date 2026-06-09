@@ -34,17 +34,48 @@ int main(void) {
         printf(" 현재 자산: %d원\n", p.asset);
         printf("=============================\n");
 
-        // [수정됨] 자산이 0원 이하일 때 아르바이트 로직 추가
+        // [수정됨] 10초 타임어택 접시 닦기 미니게임
         if (p.asset <= 0) {
             int alba_choice = 0;
             printf("파산하셨습니다! 아르바이트를 해서 돈을 벌어오시겠습니까?\n");
-            printf("1. 식당 아르바이트 하기 (1000원 획득) | 2. 게임 포기하기 >> ");
+            printf("1. 식당 접시닦기 미니게임 (10초 타임어택) | 2. 게임 포기하기 >> ");
             scanf("%d", &alba_choice);
 
             if (alba_choice == 1) {
-                printf("\n열심히 접시를 닦아 1000원을 벌었습니다!\n");
-                p.asset += 1000;
-                continue; // 자산을 얻었으니 이번 턴을 넘기고 다시 메뉴로 돌아감
+                printf("\n--- [미니게임: 10초 안에 집중해서 접시 닦기!] ---\n");
+                printf("사장님: '내가 부르는 숫자를 10초 안에 똑같이 말해야 일당을 주겠네!'\n");
+                
+                // 10000 ~ 99999 사이의 5자리 랜덤 숫자 생성
+                int target_num = rand() % 90000 + 10000; 
+                int input_num = 0;
+                
+                printf("사장님: '%d' !!! (10초 카운트 시작)\n", target_num);
+                printf("입력 >> ");
+
+                // 시간 측정 시작
+                time_t start_time = time(NULL); 
+                scanf("%d", &input_num);
+                // 시간 측정 종료
+                time_t end_time = time(NULL);   
+
+                // 걸린 시간 계산
+                int elapsed_time = (int)(end_time - start_time);
+
+                if (elapsed_time > 10) {
+                    printf("\n[시간 초과] %d초나 걸렸습니다! 너무 느려서 사장님께 쫓겨났습니다...\n", elapsed_time);
+                    printf("사장님: '동작이 굼떠서 안되겠구만! 수고비 100원만 받고 나가게.'\n");
+                    p.asset += 100;
+                }
+                else if (target_num == input_num) {
+                    printf("\n[성공] %d초 만에 완벽하게 해냈습니다! 일당 1000원을 벌었습니다!\n", elapsed_time);
+                    p.asset += 1000;
+                } 
+                else {
+                    printf("\n[실패] %d초 만에 입력했지만... 딴생각을 하다가 접시를 깨뜨렸습니다...\n", elapsed_time);
+                    printf("사장님: '쯧쯧, 수리비 제하고 300원만 가져가게.'\n");
+                    p.asset += 300;
+                }
+                continue; // 아르바이트가 끝났으니 메뉴로 돌아감
             } else {
                 printf("\n게임을 완전히 종료합니다.\n");
                 break;
@@ -112,7 +143,6 @@ int main(void) {
         // 4. 결과 판정 후 구조체의 자산(asset) 갱신
         printf("\n[최종 결과] 당신: %d점 | 딜러: %d점\n", my_score, dealer_score);
 
-        // [수정됨] 버스트(21초과) 조건을 최우선으로 검사하도록 논리 순서 변경
         if (my_score > 21) {
             printf("21점을 초과(버스트)하여 패배했습니다! (-%d원)\n", bet);
             p.asset -= bet; 
