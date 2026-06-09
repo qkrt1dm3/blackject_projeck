@@ -34,9 +34,21 @@ int main(void) {
         printf(" 현재 자산: %d원\n", p.asset);
         printf("=============================\n");
 
+        // [수정됨] 자산이 0원 이하일 때 아르바이트 로직 추가
         if (p.asset <= 0) {
-            printf("파산하셨습니다! 게임을 종료합니다.\n");
-            break;
+            int alba_choice = 0;
+            printf("파산하셨습니다! 아르바이트를 해서 돈을 벌어오시겠습니까?\n");
+            printf("1. 식당 아르바이트 하기 (1000원 획득) | 2. 게임 포기하기 >> ");
+            scanf("%d", &alba_choice);
+
+            if (alba_choice == 1) {
+                printf("\n열심히 접시를 닦아 1000원을 벌었습니다!\n");
+                p.asset += 1000;
+                continue; // 자산을 얻었으니 이번 턴을 넘기고 다시 메뉴로 돌아감
+            } else {
+                printf("\n게임을 완전히 종료합니다.\n");
+                break;
+            }
         }
 
         int menu = 0;
@@ -61,7 +73,7 @@ int main(void) {
         scanf("%d", &bet);
 
         if (bet <= 0 || bet > p.asset) {
-            printf("금액이 잘못되었습니다. 올인합니다!\n");
+            printf("금액이 잘못되었습니다. 가진 돈 전부를 올인합니다!\n");
             bet = p.asset;
         }
 
@@ -92,34 +104,31 @@ int main(void) {
                 }
                 break;
             } 
-            else if (choice != 'h' && choice != 'H' && choice != 's' && choice != 'S') {
-                printf("잘못된 입력입니다. 다시 선택해주세요.\n");
-            }
-            
             else {
-                break;
+                printf("잘못된 입력입니다. 다시 선택해주세요.\n");
             }
         }
 
-        // 4. 결과 판정 후 구조체의 자산(asset) 바로 갱신
+        // 4. 결과 판정 후 구조체의 자산(asset) 갱신
         printf("\n[최종 결과] 당신: %d점 | 딜러: %d점\n", my_score, dealer_score);
 
-        if (my_score == 21) {
-            printf("블랙잭! 배팅 금액에 1.5배가 지급됩니다! (+%d원)\n", bet * 1.5);
-            p.asset += (int)(bet * 1.5); // 구조체 변수에 직접 더하기
+        // [수정됨] 버스트(21초과) 조건을 최우선으로 검사하도록 논리 순서 변경
+        if (my_score > 21) {
+            printf("21점을 초과(버스트)하여 패배했습니다! (-%d원)\n", bet);
+            p.asset -= bet; 
+        }
+        else if (my_score == 21) {
+            printf("블랙잭! 배팅 금액에 1.5배가 지급됩니다! (+%d원)\n", (int)(bet * 1.5));
+            p.asset += (int)(bet * 1.5); 
         } 
         else if (dealer_score > 21 || my_score > dealer_score) {
             printf("축하합니다! 승리하셨습니다. (+%d원)\n", bet);
-            p.asset += bet; // 구조체 변수에 직접 더하기
+            p.asset += bet; 
         } 
         else if (my_score < dealer_score) {
             printf("딜러의 점수가 더 높습니다. 패배! (-%d원)\n", bet);
             p.asset -= bet;
         } 
-        else if ( my_score > 21) {
-            printf("21점을 초과(버스트)하여 패배했습니다! (-%d원)\n", bet);
-            p.asset -= bet; // 구조체 변수에 직접 빼기
-        }
         else {
             printf("비겼습니다! 베팅 금액을 돌려받습니다.\n");
         }
