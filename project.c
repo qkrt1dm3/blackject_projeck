@@ -8,6 +8,14 @@ typedef struct {
     int asset;
 } Player;
 
+// 게임 기록 구조체
+typedef struct {
+    int round;
+    int win;
+    int lose;
+    int draw;
+} Game;
+
 void StartFunction(void) {
     printf("게임을 시작합니다!\n");
 }
@@ -17,21 +25,29 @@ void EndFunction(void) {
 }
 
 int main(void) {
-    srand((unsigned int)time(NULL)); // 매번 다른 랜덤 숫자를 위한 설정
+    srand((unsigned int)time(NULL));
 
-    Player p; // 구조체 변수 딱 1개만 선언!
-    p.asset = 1000; // 초기 자산 1000원 설정
+    Player p;
+    p.asset = 1000;
+
+    // 게임 기록 정보 변수
+    Game g = {0, 0, 0, 0};
 
     printf("--- [초간단 1인 블랙잭 게임] ---\n");
     printf("플레이어 이름을 입력하세요: ");
-    scanf("%s", p.name); // 구조체 name 멤버에 저장
-    
-    printf("\n[%s]님 환영합니다! 초기 자산 %d원으로 게임을 시작합니다.\n", p.name, p.asset);
+    scanf("%s", p.name);
 
-    // 게임 무한 반복 루프
+    printf("\n[%s]님 환영합니다! 초기 자산 %d원으로 게임을 시작합니다.\n",
+           p.name, p.asset);
+
     while (1) {
         printf("\n=============================\n");
         printf(" 현재 자산: %d원\n", p.asset);
+
+        // 게임 기록 출력
+        printf(" 전적 : %d승 %d패 %d무 (총 %d판)\n",
+               g.win, g.lose, g.draw, g.round);
+
         printf("=============================\n");
 
         if (p.asset <= 0) {
@@ -44,16 +60,32 @@ int main(void) {
         scanf("%d", &menu);
 
         switch (menu) {
-            case 1:
-                StartFunction(); // 게임 시작 함수 호출
-                break;
-            case 2:
-                EndFunction(); // 게임 종료 함수 호출
-                return 0;
-            default:
-                printf("잘못된 입력입니다. 다시 선택해주세요.\n");
-                continue;
+        case 1:
+            StartFunction();
+            break;
+
+        case 2:
+
+            // 최종 결과 출력
+            printf("\n===== 전적 =====\n");
+            printf("플레이어 : %s\n", p.name);
+            printf("총 %d판 플레이\n", g.round);
+            printf("%d승 %d패 %d무\n",g.win, g.lose, g.draw);
+
+            if (g.round > 0) {
+                printf("승률 : %.1f%%\n",(double)g.win / g.round * 100);
+            }
+
+            EndFunction();
+            return 0;
+
+        default:
+            printf("잘못된 입력입니다. 다시 선택해주세요.\n");
+            continue;
         }
+
+        // 플레이 횟수 카운트
+        g.round++;
 
         // 1. 베팅 금액 입력
         int bet = 0;
@@ -65,67 +97,99 @@ int main(void) {
             bet = p.asset;
         }
 
-        // 2. 카드 점수 계산 (2~11 사이의 숫자를 랜덤으로 두 장씩 합산)
+        // 2. 카드 점수 계산
         int my_score = (rand() % 10 + 2) + (rand() % 10 + 2);
         int dealer_score = (rand() % 10 + 2) + (rand() % 10 + 2);
 
         printf("\n당신의 시작 점수: %d\n", my_score);
-        printf("딜러의 보여지는 카드 점수: %d\n", dealer_score - 2); // 딜러 카드는 살짝 감춤
+        printf("딜러의 보여지는 카드 점수: %d\n", dealer_score - 2);
 
-        // 3. 플레이어 히트(Hit) / 스탠드(Stand) 결정
+        // 3. 플레이어 행동
         char choice;
+
         while (my_score < 21) {
             printf("(Hit(h) 또는 Stand(s)) >> ");
-            scanf(" %c", &choice); // %c 앞 공백은 버퍼 비우기용
+            scanf(" %c", &choice);
 
             if (choice == 'h' || choice == 'H') {
                 int card = rand() % 10 + 2;
                 my_score += card;
-                printf("새 카드를 뽑았습니다 (+%d) -> 총 점수: %d\n", card, my_score);
-            } 
+
+                printf("새 카드를 뽑았습니다 (+%d) -> 총 점수: %d\n",
+                       card, my_score);
+            }
+
             else if (choice == 's' || choice == 'S') {
                 printf("스탠드 선택! 딜러의 턴으로 넘어갑니다...\n");
 
                 if (dealer_score < 17) {
                     printf("딜러의 점수가 17 미만이므로 딜러가 카드를 더 뽑습니다.\n");
-                    dealer_score += (rand() % 10 + 2);  
+                    dealer_score += (rand() % 10 + 2);
                 }
+
                 break;
-            } 
-            else if (choice != 'h' && choice != 'H' && choice != 's' && choice != 'S') {
+            }
+
+            else {
                 printf("잘못된 입력입니다. 다시 선택해주세요.\n");
             }
-            
-            else {
-                break;
-            }
         }
 
-        // 4. 결과 판정 후 구조체의 자산(asset) 바로 갱신
-        printf("\n[최종 결과] 당신: %d점 | 딜러: %d점\n", my_score, dealer_score);
+        // 4. 결과 판정
+        printf("\n[최종 결과] 당신: %d점 | 딜러: %d점\n",
+               my_score, dealer_score);
 
         if (my_score == 21) {
-            printf("블랙잭! 배팅 금액에 1.5배가 지급됩니다! (+%d원)\n", bet * 1.5);
-            p.asset += (int)(bet * 1.5); // 구조체 변수에 직접 더하기
-        } 
+            printf("블랙잭! 배팅 금액에 1.5배가 지급됩니다! (+%d원)\n",
+                   (int)(bet * 1.5));
+
+            p.asset += (int)(bet * 1.5);
+
+            // 승리 횟수 카운트 (21점 달성 시)
+            g.win++;
+        }
+
         else if (dealer_score < 21 && my_score > dealer_score) {
             printf("축하합니다! 승리하셨습니다. (+%d원)\n", bet);
-            p.asset += bet; // 구조체 변수에 직접 더하기
-        } 
+
+            p.asset += bet;
+
+            // 승리 횟수 카운트 (딜러보다 높을때)
+            g.win++;
+        }
+
         else if (dealer_score > 21) {
             printf("딜러가 버스트! 승리하셨습니다. (+%d원)\n", bet);
-            p.asset += bet; // 구조체 변수에 직접 더하기
+
+            p.asset += bet;
+
+            // 승리 횟수 카운트 (딜러가 버스트일 경우)
+            g.win++;
         }
+
         else if (my_score < dealer_score) {
             printf("딜러의 점수가 더 높습니다. 패배! (-%d원)\n", bet);
+
             p.asset -= bet;
-        } 
-        else if ( my_score > 21) {
-            printf("21점을 초과(버스트)하여 패배했습니다! (-%d원)\n", bet);
-            p.asset -= bet; // 구조체 변수에 직접 빼기
+
+            // 패배 횟수 증가
+            g.lose++;
         }
+
+        else if (my_score > 21) {
+            printf("21점을 초과(버스트)하여 패배했습니다! (-%d원)\n", bet);
+
+            p.asset -= bet;
+
+            // 패배 횟수 증가
+            g.lose++;
+        }
+
         else if (my_score == dealer_score) {
             printf("비겼습니다! 베팅 금액을 돌려받습니다.\n");
+
+            // 무승부 횟수 증가
+            g.draw++;
         }
     }
 
